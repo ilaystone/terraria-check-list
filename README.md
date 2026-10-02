@@ -98,7 +98,8 @@ This also buys:
 
 **Item detail**
 - Wiki sprite, category, weapon kind, and source badges.
-- **Crafting**: station, output count, and ingredients with quantities, each linked to its item.
+- **Crafting**: station icons, output count, and ingredients with quantities, each linked to its item.
+  Compound stations ("Work Bench and Ecto Mist") render one icon per station.
 - **Dropped by**: every enemy or container, with environment and a per-difficulty rate table.
 - **Sold by**: vendor and coin price.
 - **Difficulty badge** for items that cannot drop on Normal.
@@ -495,6 +496,12 @@ detail. Run it after every regeneration.
   dependency at the cost of ~6,140 files in the repository.
 - **Container and chest drops are listed as flat sources.** "Gold Chest", "Dead Man's Chest" and
   crates are shown by name; the snapshot does not model which world or biome they appear in.
+- **No per-recipe platform flags.** `Recipes.version` and `Recipes.legacy` are empty on all
+  4,266 rows, so there is no per-platform recipe data in the Cargo tables. The wiki's `Exclusive`
+  table holds platform availability, but only for **legacy** content: 221 rows, of which just
+  **5** match an item in this snapshot (`Ocram Trophy`, `Ocram Mask`, `Icemourne`, `Scythe`,
+  `Rainbow Piece`). Importing it would add platform badges for five dead items, so it is not
+  wired up. Adding real platform flags means parsing per-item wikitext, not Cargo.
 - **Non-coin vendors are excluded.** Items priced in Defender Medals are not recorded as coin
   purchases, so they appear without a `shop` route.
 

@@ -126,6 +126,133 @@ export interface Refs {
   readonly npcs: Readonly<Record<string, NpcRef>>;
 }
 
+/** One resolvable part of a crafting station name. */
+export interface StationPart {
+  /** Display name, e.g. "Ecto Mist". */
+  readonly name: string;
+  /** Wiki sprite URL, or `null` when the wiki has no image under this name. */
+  readonly sprite: string | null;
+}
+
+/**
+ * Stations that actually have a sprite on the wiki, verified by request.
+ *
+ * This is an ALLOWLIST rather than a list of exceptions, and the difference is
+ * load-bearing: a blocklist would hand a URL to anything unlisted, and names
+ * like "Snow Biome", "Table" and "Chair" are not stations with images, so the
+ * UI would request a 404 and show a fallback for something that should have
+ * rendered as text.
+ *
+ * Deliberately excludes conditions and non-placeables: "By Hand" (no station),
+ * "Heavy Work Bench" and "Placed Bottle" (real, but no image under that name),
+ * "Shimmer" (a liquid), and "Water"/"Honey"/"Lava", which do have sprites and
+ * are therefore included.
+ */
+export const STATIONS_WITH_SPRITE: readonly string[] = [
+  'Adamantite Forge',
+  'Ancient Manipulator',
+  'Autohammer',
+  'Blend-O-Matic',
+  'Bone Welder',
+  'Bookcase',
+  'Campfire',
+  'Chlorophyte Extractinator',
+  'Cooking Pot',
+  'Crystal Ball',
+  'Decay Chamber',
+  'Demon Altar',
+  'Dye Vat',
+  'Ecto Mist',
+  'Flesh Cloning Vat',
+  'Furnace',
+  'Glass Kiln',
+  'Heavy Assembler',
+  'Hellforge',
+  'Honey',
+  'Honey Dispenser',
+  'Ice Machine',
+  'Imbuing Station',
+  'Iron Anvil',
+  'Keg',
+  'Lava',
+  'Lihzahrd Furnace',
+  'Living Loom',
+  'Living Wood',
+  'Loom',
+  'Meat Grinder',
+  'Mythril Anvil',
+  'Sawmill',
+  'Sky Mill',
+  'Solidifier',
+  'Steampunk Boiler',
+  // These two names contain " and " but are single stations with their own
+  // image, which is why the whole string is checked before splitting.
+  'Table and Chair',
+  'Work Bench and Chair',
+  'Teapot',
+  "Tinkerer's Workshop",
+  'Water',
+  'Work Bench',
+];
+
+/**
+ * Split a station name into displayable parts.
+ *
+ * Cargo stores compound stations as "X and Y" — "Work Bench and Ecto Mist",
+ * "Crystal Ball and Water" — so each part gets its own icon. Splitting happens
+ * here rather than in the generator so the raw station string stays intact for
+ * display.
+ *
+ * Note "Table and Chair" is itself a single station whose name contains " and ";
+ * neither part alone is that station, so the whole string is checked first.
+ */
+export function stationParts(station: string): StationPart[] {
+  const whole = station.trim();
+  if (STATIONS_WITH_SPRITE.includes(whole)) {
+    return [{ name: whole, sprite: spriteUrl(whole) }];
+  }
+  return whole
+    .split(' and ')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((name) => ({
+      name,
+      sprite: STATIONS_WITH_SPRITE.includes(name) ? spriteUrl(name) : null,
+    }));
+}
+
+/**
+ * Platforms an item exists on.
+ *
+ * Only populated for legacy platform-exclusive content, which is all the wiki's
+ * `Exclusive` table covers. `pc` is not stored — every current item is on PC,
+ * and the table only lists pages that are NOT.
+ */
+export interface PlatformFlags {
+  readonly pc?: boolean;
+  readonly console?: boolean;
+  readonly oldgen?: boolean;
+  readonly mobile?: boolean;
+  readonly '3ds'?: boolean;
+  readonly japanese?: boolean;
+}
+
+/** Display order and labels for platform flags. */
+export const PLATFORM_LABELS: readonly { key: keyof PlatformFlags; label: string }[] = [
+  { key: 'pc', label: 'PC' },
+  { key: 'console', label: 'Console' },
+  { key: 'mobile', label: 'Mobile' },
+  { key: 'oldgen', label: 'Old-gen console' },
+  { key: '3ds', label: '3DS' },
+  { key: 'japanese', label: 'Japanese console' },
+];
+
+/** Platform labels set in a flags object, in display order. */
+export function platformLabels(flags: PlatformFlags | undefined): string[] {
+  if (!flags) return [];
+  return PLATFORM_LABELS.filter((p) => flags[p.key] === true).map((p) => p.label);
+}
+
 export interface SnapshotMeta {
   readonly schemaVersion: number;
   readonly generatedAt: string;
@@ -149,6 +276,8 @@ export interface Catalog {
   /** Difficulty names in bit order, for a drop source's `d` mask. */
   readonly difficulties?: readonly string[];
   readonly difficultyBits?: Readonly<Record<string, number>>;
+  /** Every distinct crafting station string used by any recipe. */
+  readonly stations?: readonly string[];
 }
 
 /** Difficulty names set in a drop's mask, given the catalog's bit positions. */

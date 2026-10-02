@@ -176,3 +176,28 @@ h1 {
 .muted a {
   color: var(--accent);
 }
+
+/* Crafting station icons. Sprites are 16-32px pixel art, so smoothing them
+   looks blurry; parts of a compound station sit side by side. */
+.station-icons {
+  display: inline-flex;
+  gap: 0.15rem;
+  align-items: center;
+}
+
+.station-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* Stations with no sprite under their own name ("Shimmer", "Placed Bottle")
+   render as a short text chip instead of a broken image. */
+.station-fallback {
+  padding: 0 0.35rem;
+  font-size: 0.7rem;
+  color: var(--color-base-content);
+  background: var(--color-base-300);
+  border-radius: 0.25rem;
+}

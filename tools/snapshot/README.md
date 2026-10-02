@@ -174,6 +174,7 @@ Committed files in `public/data/`:
   "sourceFlags":    ["craft", "fished", "drop", "shop", "unknown"], // bit (1 << i)
   "unknownBit":     16,
   "subtypes":       [{ "name": "Broadswords", "parent": "Weapons" }, "…"],
+  "stations":       ["Adamantite Forge", "…", "Work Bench and Ecto Mist"],
   "difficulties":   ["normal", "expert", "master"],
   "difficultyBits": { "normal": 1, "expert": 2, "master": 4 }
 }
@@ -230,6 +231,23 @@ Parsing that HTML is the most fragile part of the generator, and it was wrong tw
   rate silently collapsed to the first number found (0.2% reported where the wiki says 0.25%).
 
 Both are now covered by tests using verbatim wiki markup.
+
+### Crafting stations
+
+`stations` lists every distinct station string any recipe uses, so the app resolves station
+icons from data rather than a hard-coded list. Names are sometimes compound — `Work Bench and
+Ecto Mist`, `Crystal Ball and Water` — and the app splits those on `" and "` to render one icon
+per station.
+
+The app holds an **allowlist** of the 42 stations with a real wiki image, not a list of
+exceptions. A blocklist would hand a URL to anything unlisted, and names like `Snow Biome`,
+`Table` and `Chair` are not stations with images, so the UI would request a 404 for something
+that should render as text. `Table and Chair` and `Work Bench and Chair` are checked as whole
+strings first, because they contain `" and "` but are single stations with a single image.
+
+Note `Recipes.version` and `Recipes.legacy` are **empty on all 4,266 rows** — there is no
+per-platform recipe data in Cargo. See the root README's known limits for why `Exclusive` does
+not fill that gap.
 
 Detail keys: `r` research, `s` stack, `b` buy (copper), `sl` sell (copper), `p` placeable,
 `c` consumable, `h` hardmode, `u` unobtainable, `hint` advisory source hint, `t` tags.

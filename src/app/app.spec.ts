@@ -1,4 +1,4 @@
-import { formatCoins, hasSource, sourceNames, spriteUrl } from './core/models';
+import { formatCoins, hasSource, platformLabels, sourceNames, spriteUrl, stationParts } from './core/models';
 import {
   parseStoredProgress,
   reconcile,
@@ -184,5 +184,75 @@ describe('serialise', () => {
     const parsed = parseStoredProgress(json);
     expect(parsed.ok).toBe(true);
     if (parsed.ok) expect(parsed.data.ids).toEqual([3, 7]);
+  });
+});
+
+describe('stationParts', () => {
+  it('resolves a simple station to one sprite', () => {
+    const parts = stationParts('Mythril Anvil');
+    expect(parts.length).toBe(1);
+    expect(parts[0].name).toBe('Mythril Anvil');
+    expect(parts[0].sprite).toContain('Mythril_Anvil.png');
+  });
+
+  it('splits a compound station into one icon per part', () => {
+    // Cargo stores these as "X and Y"; each part has its own sprite.
+    const parts = stationParts('Crystal Ball and Water');
+    expect(parts.map((p) => p.name)).toEqual(['Crystal Ball', 'Water']);
+    expect(parts.every((p) => p.sprite !== null)).toBe(true);
+  });
+
+  it('splits the multi-part Ecto Mist variants', () => {
+    expect(stationParts('Work Bench and Ecto Mist').map((p) => p.name)).toEqual([
+      'Work Bench',
+      'Ecto Mist',
+    ]);
+    expect(stationParts("Tinkerer's Workshop and Ecto Mist").map((p) => p.name)).toEqual([
+      "Tinkerer's Workshop",
+      'Ecto Mist',
+    ]);
+  });
+
+  it('returns no sprite for stations the wiki has no image for', () => {
+    // Verified against the wiki: these 404 under their own name, so the UI falls
+    // back to text rather than showing a broken image.
+    for (const name of ['By Hand', 'Heavy Work Bench', 'Placed Bottle', 'Shimmer']) {
+      expect(stationParts(name)[0].sprite).toBeNull();
+    }
+  });
+
+  it('keeps a compound station usable when only one part has a sprite', () => {
+    // "Sky Mill and Snow Biome": Sky Mill is a station, "Snow Biome" is a
+    // location and has no sprite, so it renders as text.
+    const parts = stationParts('Sky Mill and Snow Biome');
+    expect(parts.map((p) => p.name)).toEqual(['Sky Mill', 'Snow Biome']);
+    expect(parts[0].sprite).not.toBeNull();
+    expect(parts[1].sprite).toBeNull();
+  });
+
+  it('treats "Table and Chair" as one station, not two', () => {
+    // Its name contains " and " but it is a single station with a single image,
+    // which is why the whole string is checked against the allowlist first.
+    const parts = stationParts('Table and Chair');
+    expect(parts.length).toBe(1);
+    expect(parts[0].name).toBe('Table and Chair');
+    expect(parts[0].sprite).not.toBeNull();
+  });
+
+  it('gives no sprite to a station whose name has no image', () => {
+    expect(stationParts('Placed Bottle only')[0].sprite).toBeNull();
+    expect(stationParts('Heavy Work Bench')[0].sprite).toBeNull();
+  });
+});
+
+describe('platformLabels', () => {
+  it('lists platforms in display order and skips unset ones', () => {
+    expect(platformLabels({ '3ds': true, oldgen: true })).toEqual(['Old-gen console', '3DS']);
+    expect(platformLabels({ pc: true })).toEqual(['PC']);
+  });
+
+  it('returns nothing for absent flags', () => {
+    expect(platformLabels(undefined)).toEqual([]);
+    expect(platformLabels({})).toEqual([]);
   });
 });

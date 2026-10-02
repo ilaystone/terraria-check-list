@@ -2,7 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { RouterLink } from '@angular/router';
 
 import { ChecklistStore } from '../../core/checklist-store';
-import { difficultyLabel, formatCoins, sourceNames, spriteUrl, type DropRates } from '../../core/models';
+import {
+  difficultyLabel,
+  formatCoins,
+  sourceNames,
+  spriteUrl,
+  stationParts as stationPartsOf,
+  type DropRates,
+} from '../../core/models';
 
 /** Maps a source tag to its daisyUI badge colour. Mirrors the list row. */
 const SOURCE_BADGE: Record<string, string> = {
@@ -98,6 +105,21 @@ export class ItemDetailPage {
   protected readonly crafts = computed(() => this.sources()?.craft ?? []);
   protected readonly drops = computed(() => this.sources()?.drop ?? []);
   protected readonly shops = computed(() => this.sources()?.shop ?? []);
+
+  /**
+   * Icon parts for a crafting station.
+   *
+   * Compound stations ("Work Bench and Ecto Mist") yield more than one part, so
+   * the template renders an icon per part rather than one icon per recipe.
+   */
+  protected stationParts(station: string) {
+    return stationPartsOf(station);
+  }
+
+  /** True when "By Hand" is the whole station, i.e. no station is needed. */
+  protected isByHand(station: string): boolean {
+    return station.trim().toLowerCase() === 'by hand';
+  }
 
   /**
    * Difficulty restriction, when the item cannot be obtained on Normal.

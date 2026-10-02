@@ -113,6 +113,9 @@ export class SnapshotRepository {
   /** Bit per difficulty name. */
   readonly difficultyBits = computed(() => this.catalogResource.value()?.difficultyBits);
 
+  /** Every distinct crafting station string. */
+  readonly stations = computed(() => this.catalogResource.value()?.stations ?? []);
+
   /** Full acquisition detail, keyed by item id as a string. */
   readonly sources = computed<Readonly<Record<string, ItemSources>>>(
     () => this.sourcesResource.value() ?? {},

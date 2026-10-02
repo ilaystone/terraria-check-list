@@ -131,6 +131,11 @@ export async function emit({ snapshot, logger }) {
      * tree and treat any item without a subIdx as a direct child of its category.
      */
     subtypes: snapshot.subtypes,
+    /**
+     * Distinct crafting stations, so the app resolves station icons from data
+     * rather than from a hard-coded list that could drift from the wiki.
+     */
+    stations: snapshot.stations,
     /** Difficulty names in bit order, for the `d` mask on a drop source. */
     difficulties: DIFFICULTIES,
     /** Bit per difficulty, mirrored so the app does not hard-code positions. */

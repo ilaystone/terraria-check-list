@@ -383,6 +383,16 @@ export function normalize({ items, recipes, drops, npcs, curation, meta }) {
   const weaponCount = records.filter((r) => CATEGORY_NAMES[r.categoryIdx] === 'Weapons').length;
   const weaponWithKind = records.filter((r) => r.subIdx >= 0).length;
 
+  /**
+   * Every distinct crafting station used by any recipe, sorted.
+   *
+   * Emitted so the app does not have to derive it, and so the *set* is
+   * versioned with the data. Station names are sometimes compound — "Work Bench
+   * and Ecto Mist", "Crystal Ball and Water" — and the app splits those into
+   * per-station icons; the list is the raw strings, not the split parts.
+   */
+  const stations = [...new Set(recipes.rows.map((r) => clean(r.station)).filter(Boolean))].sort();
+
   const curatedUnknown = records.filter(
     (r) => r.curated && isUnknownMask(r.sourceMask),
   ).length;
@@ -417,6 +427,8 @@ export function normalize({ items, recipes, drops, npcs, curation, meta }) {
      * category it sits under, so `subIdx` is a lookup into this array.
      */
     subtypes: WEAPON_KINDS.map((k) => ({ name: k.name, parent: k.parent })),
+    /** Every distinct crafting station string, for icon resolution in the app. */
+    stations,
     /** Enemy lookup for drop sources, keyed by raw name. */
     npcs: Object.fromEntries(npcByRawName),
     records,
