@@ -1,0 +1,45 @@
+<tr class="item-row hover" [class.opacity-50]="checked()">
+  <td class="w-10">
+    <input
+      type="checkbox"
+      class="checkbox checkbox-sm checkbox-primary"
+      [checked]="checked()"
+      (change)="toggle()"
+      [attr.aria-label]="'Mark ' + item().name + ' as collected'"
+    />
+  </td>
+
+  <td class="w-12">
+    <img
+      class="sprite"
+      [src]="sprite()"
+      [alt]="''"
+      loading="lazy"
+      decoding="async"
+      width="32"
+      height="32"
+      referrerpolicy="no-referrer"
+      (error)="onSpriteError($event)"
+    />
+  </td>
+
+  <td class="min-w-0">
+    <a class="link link-hover font-medium" [routerLink]="['/item', item().id]">
+      {{ item().name }}
+    </a>
+  </td>
+
+  <!-- Type is its own column rather than a suffix on the name, so it can be scanned. -->
+  <td class="whitespace-nowrap">
+    <span class="badge badge-sm badge-outline">{{ categoryName() }}</span>
+    @if (subtypeName(); as sub) {
+      <span class="badge badge-sm badge-neutral ml-1">{{ sub }}</span>
+    }
+  </td>
+
+  <td class="whitespace-nowrap">
+    @for (source of sources(); track source) {
+      <span class="badge badge-sm mr-1 {{ badgeClass(source) }}">{{ source }}</span>
+    }
+  </td>
+</tr>

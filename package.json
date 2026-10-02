@@ -1,0 +1,47 @@
+{
+  "name": "terraria-checklist",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Terraria item checklist. The wiki snapshot is generated at build time and committed.",
+  "scripts": {
+    "tailwind:compile": "tailwindcss -i src/tailwind.css -o src/tailwind.generated.css --minify",
+    "tailwind:watch": "tailwindcss -i src/tailwind.css -o src/tailwind.generated.css --watch",
+    "prestart": "npm run tailwind:compile",
+    "start": "ng serve",
+    "prebuild": "npm run tailwind:compile",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+
+    "gather": "node tools/snapshot/gather.mjs",
+    "gather:refresh": "node tools/snapshot/gather.mjs --refresh",
+    "gather:offline": "node tools/snapshot/gather.mjs --offline",
+    "gather:check": "node tools/snapshot/gather.mjs --check",
+    "verify": "node tools/snapshot/validate.mjs",
+
+    "test": "node --test --test-isolation=none \"tests/**/*.test.mjs\"",
+    "test:watch": "node --test --watch --test-isolation=none \"tests/**/*.test.mjs\"",
+    "test:app": "ng test"
+  },
+  "dependencies": {
+    "@angular/common": "^22.2.0",
+    "@angular/compiler": "^22.2.0",
+    "@angular/core": "^22.2.0",
+    "@angular/forms": "^22.2.0",
+    "@angular/platform-browser": "^22.2.0",
+    "@angular/router": "^22.2.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.2.1",
+    "@angular/cli": "^22.2.1",
+    "@angular/compiler-cli": "^22.2.0",
+    "@tailwindcss/cli": "^4.3.3",
+    "daisyui": "^5.7.47",
+    "jsdom": "^30.0.0",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vitest": "^5.0.0"
+  }
+}

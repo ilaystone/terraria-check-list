@@ -1,0 +1,101 @@
+<div class="app-shell flex flex-col">
+  <header class="navbar bg-base-200 border-b border-base-300 sticky top-0 z-20 min-h-14 px-4 gap-4">
+    <a class="btn btn-ghost gap-2 px-2" routerLink="/">
+      <span class="grid place-items-center w-7 h-7 rounded-md bg-primary text-primary-content text-xs font-bold">
+        TC
+      </span>
+      <span class="text-base font-semibold hidden sm:inline">Terraria Checklist</span>
+    </a>
+
+    <div class="flex-1 flex items-center gap-3 min-w-32">
+      <progress
+        class="progress progress-primary w-full"
+        [value]="percent()"
+        max="100"
+        [attr.aria-label]="'Collection progress: ' + percent() + ' percent'"
+      ></progress>
+      <span class="text-xs opacity-70 whitespace-nowrap tabular-nums">
+        {{ store.checkedInTier() }} / {{ store.tierItems() }}
+      </span>
+    </div>
+
+    <button
+      type="button"
+      class="btn btn-sm btn-ghost"
+      [disabled]="!hasProgress()"
+      (click)="confirmReset()"
+    >
+      Reset
+    </button>
+  </header>
+
+  @if (store.loadError(); as message) {
+    <div class="alert alert-error rounded-none" role="alert">
+      <span>{{ message }}</span>
+      <button type="button" class="btn btn-xs" (click)="store.reloadData()">Retry</button>
+    </div>
+  }
+
+  @if (store.progressError(); as message) {
+    <div class="alert alert-warning rounded-none" role="status">
+      <span>{{ message }}</span>
+    </div>
+  }
+
+  @if (store.progressLoad(); as load) {
+    @if (load.dropped > 0) {
+      <div class="alert alert-info rounded-none" role="status">
+        <span>
+          {{ load.dropped }} saved item{{ load.dropped === 1 ? '' : 's' }} no longer exist in this
+          snapshot and {{ load.dropped === 1 ? 'was' : 'were' }} dropped.
+        </span>
+      </div>
+    }
+  }
+
+  @if (store.isLoading()) {
+    <div class="alert rounded-none" role="status">
+      <span class="loading loading-spinner loading-sm"></span>
+      <span>Loading wiki snapshot…</span>
+    </div>
+  }
+
+  <div class="flex flex-1 items-start min-h-0 flex-col md:flex-row">
+    <aside
+      class="w-full md:w-60 md:sticky md:top-14 md:max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-b md:border-b-0 md:border-r border-base-300 p-2"
+    >
+      <nav class="menu menu-sm w-full" aria-label="Categories">
+        <li>
+          <button
+            type="button"
+            [class.menu-active]="store.category() === null"
+            (click)="store.setCategory(null)"
+          >
+            <span>All items</span>
+            <span class="badge badge-sm">{{ store.filtered().length }}</span>
+          </button>
+        </li>
+
+        @for (category of store.categories(); track category) {
+          @let count = store.categoryCounts().get(category) ?? 0;
+          @if (count > 0) {
+            <li>
+              <button
+                type="button"
+                [class.menu-active]="store.category() === category"
+                (click)="store.setCategory(category)"
+              >
+                <span class="truncate">{{ category }}</span>
+                <span class="badge badge-sm">{{ count }}</span>
+              </button>
+            </li>
+          }
+        }
+      </nav>
+    </aside>
+
+    <main class="flex-1 min-w-0 p-4 pb-16">
+      <router-outlet />
+    </main>
+  </div>
+</div>

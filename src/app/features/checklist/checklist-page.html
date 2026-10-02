@@ -1,0 +1,153 @@
+<section class="flex flex-col gap-3 pb-4 border-b border-base-300">
+  <div class="flex flex-wrap gap-2 items-center">
+    <label class="input input-bordered flex items-center gap-2 flex-1 min-w-56">
+      <svg class="w-4 h-4 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
+      <input
+        type="search"
+        class="grow"
+        placeholder="Search items…"
+        [value]="store.query()"
+        (input)="onSearch($event)"
+        aria-label="Search items by name"
+      />
+    </label>
+
+    <div class="join" role="group" aria-label="Item tier">
+      <button
+        type="button"
+        class="btn btn-sm join-item"
+        [class.btn-active]="store.tier() === 'curated'"
+        (click)="onTierChange('curated')"
+      >
+        Curated
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm join-item"
+        [class.btn-active]="store.tier() === 'all'"
+        (click)="onTierChange('all')"
+      >
+        Everything
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-2 items-center">
+    <span class="text-xs uppercase tracking-wide opacity-60 mr-1">Source</span>
+    @for (source of store.sourceFlags(); track source; let i = $index) {
+      @let count = store.sourceCounts()[i] ?? 0;
+      @if (count > 0) {
+        <button
+          type="button"
+          class="btn btn-xs rounded-full"
+          [class.btn-primary]="isSourceActive(i)"
+          (click)="store.toggleSource(i)"
+        >
+          {{ source }}
+          <span class="badge badge-xs">{{ count }}</span>
+        </button>
+      }
+    }
+    @if (store.sourceBits() !== 0) {
+      <button type="button" class="btn btn-xs btn-ghost" (click)="store.clearSources()">clear</button>
+    }
+  </div>
+
+  @if (store.category(); as category) {
+    @if (store.subtypesOfActiveCategory().length > 0) {
+      @let parent = store.subtypeParentOf(category) ?? category;
+      <div class="flex flex-wrap gap-2 items-center" role="group" [attr.aria-label]="parent + ' kinds'">
+        <button
+          type="button"
+          class="btn btn-xs rounded-full"
+          [class.btn-secondary]="store.category() === parent"
+          (click)="store.setCategory(parent)"
+        >
+          All {{ parent }}
+        </button>
+        @for (sub of store.subtypesOfActiveCategory(); track sub) {
+          <button
+            type="button"
+            class="btn btn-xs rounded-full"
+            [class.btn-secondary]="store.category() === sub"
+            (click)="store.setCategory(sub)"
+          >
+            {{ sub }}
+          </button>
+        }
+      </div>
+    }
+  }
+
+  <div class="flex flex-wrap gap-3 items-center justify-between">
+    <label class="label cursor-pointer gap-2 py-0">
+      <input
+        type="checkbox"
+        class="checkbox checkbox-sm checkbox-primary"
+        [checked]="store.tierSelectionState() === 'all'"
+        [indeterminate]="store.tierSelectionState() === 'some'"
+        (change)="toggleAll()"
+      />
+      <span class="label-text text-sm">
+        {{ store.tier() === 'curated' ? 'Tick all curated' : 'Tick everything' }}
+      </span>
+    </label>
+
+    <button type="button" class="btn btn-xs btn-ghost" (click)="store.uncheckAll('filtered')">
+      Untick all matching ({{ store.filtered().length }})
+    </button>
+  </div>
+</section>
+
+<p class="text-sm opacity-70 my-3">
+  Showing {{ store.visible().length }} of {{ store.filtered().length }} items
+  @if (store.category(); as category) {
+    in <span class="font-semibold">{{ category }}</span>
+  }
+  · {{ store.filteredCheckedCount() }} collected here
+</p>
+
+@if (isEmpty()) {
+  <div class="alert">
+    <span>
+      @if (hasActiveFilters()) {
+        No items match the current filters.
+      } @else {
+        No items to show.
+      }
+    </span>
+  </div>
+} @else {
+  <div class="overflow-x-auto">
+    <!-- `table-fixed` + widths on the header cells is what actually sizes these
+         columns. Sizing the body cells instead does not work here: daisyUI's
+         `.table` uses `table-layout: auto`, where a width on a descendant `td`
+         has no effect on the column, which left the item column collapsing and
+         wrapping names. -->
+    <table class="table table-sm table-zebra table-pin-rows table-fixed">
+      <thead>
+        <tr>
+          <th class="w-10"><span class="sr-only">Collected</span></th>
+          <th class="w-12"><span class="sr-only">Icon</span></th>
+          <th>Item</th>
+          <th class="w-56">Type</th>
+          <th class="w-44">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of store.visible(); track item.id) {
+          <app-item-row [item]="item" />
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (store.hasMore()) {
+    <button type="button" class="btn btn-block btn-outline mt-4" (click)="store.loadMore()">
+      Load 100 more ({{ store.filtered().length - store.visible().length }} remaining)
+    </button>
+  }
+}

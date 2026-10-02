@@ -1,0 +1,30 @@
+/* App-wide styles.
+
+   Order matters: Tailwind + daisyUI first (compiled by `npm run tailwind:compile`
+   into `tailwind.generated.css`), then anything app-specific, so app rules win
+   without needing `!important`.
+
+   The colour palette is daisyUI's `dim` theme, configured in `src/tailwind.css`.
+   Do not hard-code colours here — change the theme instead. */
+@use 'tailwind.generated.css';
+
+/* Item sprites are pixel art served straight from the wiki. Smoothing them looks
+   blurry, so scaling is disabled. These two classes are global on purpose:
+   Angular's view encapsulation would scope them to one component, and both the
+   list rows and the detail header need them. */
+.sprite,
+.sprite-lg {
+  display: block;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.sprite {
+  width: 2rem;
+  height: 2rem;
+}
+
+.sprite-lg {
+  width: 4rem;
+  height: 4rem;
+}

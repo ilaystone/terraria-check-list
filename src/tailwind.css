@@ -1,0 +1,19 @@
+/* Tailwind + daisyUI entry point.
+   Compiled by the standalone Tailwind CLI into `src/tailwind.generated.css`, which
+   `src/styles.scss` then imports. Angular 22's builder does not apply
+   `.postcssrc.json`, so the compile is an explicit build step rather than an
+   implicit pipeline stage — see the `tailwind` npm script.
+
+   Tailwind v4 scans the source tree for the utility classes actually used, so the
+   `@source` line must point at the templates, not at this file. */
+@import 'tailwindcss';
+
+/* One `@source` per extension rather than a brace glob: Windows path matching
+   with `{html,ts}` is worth avoiding when two lines remove the doubt. Both are
+   needed — classes live in templates *and* in the TS that returns badge classes. */
+@source './src/**/*.html';
+@source './src/**/*.ts';
+
+@plugin 'daisyui' {
+  themes: dim --default --prefersdark;
+}

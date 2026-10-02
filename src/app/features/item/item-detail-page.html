@@ -1,0 +1,261 @@
+@if (item(); as row) {
+  <article class="max-w-3xl">
+    <a class="btn btn-sm btn-ghost mb-3 -ml-2" routerLink="/">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      Back to checklist
+    </a>
+
+    <header class="flex gap-4 items-start pb-5 border-b border-base-300">
+      <img
+        class="sprite-lg shrink-0"
+        [src]="sprite()"
+        [alt]="row.name"
+        decoding="async"
+        width="64"
+        height="64"
+        referrerpolicy="no-referrer"
+        (error)="onSpriteError($event)"
+      />
+
+      <div class="min-w-0">
+        <label class="label cursor-pointer justify-start gap-2 p-0 mb-1">
+          <input
+            type="checkbox"
+            class="checkbox checkbox-sm checkbox-primary"
+            [checked]="checked()"
+            (change)="toggle()"
+          />
+          <span class="label-text text-sm">{{ checked() ? 'Collected' : 'Mark as collected' }}</span>
+        </label>
+
+        <h1 class="text-2xl font-semibold truncate">{{ row.name }}</h1>
+
+        <div class="flex flex-wrap gap-1 items-center mt-2">
+          <span class="badge badge-outline">{{ categoryName() }}</span>
+          @if (subtypeName(); as sub) {
+            <span class="badge badge-neutral">{{ sub }}</span>
+          }
+          @for (source of sourceTags(); track source) {
+            <span class="badge {{ badgeClass(source) }}">{{ source }}</span>
+          }
+          @if (difficulty(); as diff) {
+            <span class="badge badge-error gap-1" [title]="diff.label ?? ''">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path d="M12 3l9 16H3z" />
+                <path d="M12 9v5M12 17h.01" />
+              </svg>
+              {{ diff.label }}
+            </span>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Acquisition detail: the reason this page exists rather than just a stat block. -->
+    @if (hasAcquisitionDetail() || difficulty()) {
+      <section class="mt-6">
+        <h2 class="text-xs uppercase tracking-wide opacity-60 mb-3">How to obtain</h2>
+
+        @if (difficulty(); as diff) {
+          <div class="alert alert-error mb-3" role="note">
+            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 3l9 16H3z" />
+              <path d="M12 9v5M12 17h.01" />
+            </svg>
+            <span>{{ diff.label }}. The wiki records drop data only for that difficulty.</span>
+          </div>
+        }
+
+        @if (crafts().length > 0) {
+          <div class="card bg-base-200 mb-3">
+            <div class="card-body p-4">
+              <h3 class="card-title text-sm gap-2">
+                <svg class="w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M14 4l6 6-9 9H5v-6z" />
+                </svg>
+                Crafting
+              </h3>
+
+              @for (craft of crafts(); track $index) {
+                <div class="flex flex-wrap gap-2 items-center text-sm mt-1">
+                  <span class="badge badge-outline badge-sm">
+                    {{
+                      craft.st === 'By Hand'
+                        ? 'By hand (no station)'
+                        : 'At ' + craft.st
+                    }}
+                  </span>
+                  @if (craft.n && craft.n > 1) {
+                    <span class="badge badge-ghost badge-sm">yields {{ craft.n }}</span>
+                  }
+                </div>
+
+                <ul class="flex flex-wrap gap-2 mt-2 mb-1">
+                  @for (ing of craft.ings; track ing.n) {
+                    <li class="badge badge-lg gap-2 bg-base-100 border-base-300">
+                      @if (ingredientId(ing.n); as iid) {
+                        <a class="link link-hover" [routerLink]="['/item', iid]">{{ ing.n }}</a>
+                      } @else {
+                        <span title="Ingredient group, not a single item">{{ ing.n }}</span>
+                      }
+                      <span class="opacity-60">×{{ ing.q }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+        }
+
+        @if (drops().length > 0) {
+          <div class="card bg-base-200 mb-3">
+            <div class="card-body p-4">
+              <h3 class="card-title text-sm gap-2">
+                <svg class="w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+                </svg>
+                Dropped by
+                <span class="badge badge-sm badge-ghost">{{ drops().length }}</span>
+              </h3>
+
+              <div class="overflow-x-auto mt-1">
+                <table class="table table-xs">
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th class="w-20">Qty</th>
+                      <th class="w-24">Normal</th>
+                      <th class="w-24">Expert</th>
+                      <th class="w-24">Master</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (drop of drops(); track drop.s + drop.q) {
+                      @let rates = rateRows(drop.r);
+                      <tr>
+                        <td>
+                          {{ drop.s }}
+                          @if (npcDetail(drop.s); as npc) {
+                            @if (npc.env) {
+                              <span class="opacity-50 text-xs">· {{ npc.env }}</span>
+                            }
+                          }
+                          @for (mode of dropDifficulties(drop.d); track mode) {
+                            <span class="badge badge-xs badge-warning ml-1">{{ mode }}</span>
+                          }
+                        </td>
+                        <td class="tabular-nums">{{ drop.q }}</td>
+                        <!-- Always three cells, so a missing rate cannot shift the
+                             columns and put Expert's value under Master. -->
+                        @if (rates.length === 0) {
+                          <td colspan="3" class="opacity-50">rate not stated</td>
+                        } @else {
+                          <td class="tabular-nums">{{ rateFor(rates, 'normal') }}</td>
+                          <td class="tabular-nums">{{ rateFor(rates, 'expert') }}</td>
+                          <td class="tabular-nums">{{ rateFor(rates, 'master') }}</td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (shops().length > 0) {
+          <div class="card bg-base-200 mb-3">
+            <div class="card-body p-4">
+              <h3 class="card-title text-sm gap-2">
+                <svg class="w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M3 6h18l-2 12H5z" />
+                  <path d="M8 6a4 4 0 018 0" />
+                </svg>
+                Sold by
+              </h3>
+              <ul class="flex flex-wrap gap-2 mt-1">
+                @for (shop of shops(); track shop.npc) {
+                  <li class="badge badge-lg gap-2 bg-base-100 border-base-300">
+                    <span class="capitalize">{{ shop.npc }}</span>
+                    <span class="opacity-60">{{ formatPrice(shop.price) }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    @if (detail(); as d) {
+      <div class="stats stats-vertical sm:stats-horizontal bg-base-200 w-full my-5">
+        <div class="stat">
+          <div class="stat-title">Research</div>
+          <div class="stat-value text-lg">{{ d.r ?? '—' }}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Max stack</div>
+          <div class="stat-value text-lg">{{ d.s ?? '—' }}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Buy</div>
+          <div class="stat-value text-lg">{{ buyPrice() }}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Sell</div>
+          <div class="stat-value text-lg">{{ sellPrice() }}</div>
+        </div>
+      </div>
+
+      @if (flags().length > 0) {
+        <div class="flex flex-wrap gap-2 mb-4">
+          @for (flag of flags(); track flag) {
+            <span class="badge badge-ghost">{{ flag }}</span>
+          }
+        </div>
+      }
+
+      @if (hint(); as h) {
+        <div class="alert alert-warning mb-4" role="status">
+          <span>
+            No acquisition route could be derived from the wiki's recipe, drop and vendor data.
+            An item tag suggests: <strong>{{ h }}</strong>.
+          </span>
+        </div>
+      }
+
+      @if (d.t?.length) {
+        <section>
+          <h2 class="text-xs uppercase tracking-wide opacity-60 mb-2">Wiki tags</h2>
+          <div class="flex flex-wrap gap-1">
+            @for (tag of d.t; track tag) {
+              <span class="badge badge-sm badge-ghost">{{ tag }}</span>
+            }
+          </div>
+        </section>
+      }
+    } @else {
+      <p class="opacity-70 my-5">No extra statistics recorded for this item.</p>
+    }
+
+    @if (wikiUrl(); as url) {
+      <p class="text-sm opacity-70 mt-6">
+        Stats are a snapshot; the wiki is the authority.
+        <a class="link link-primary" [href]="url" target="_blank" rel="noopener noreferrer">
+          Open on terraria.wiki.gg
+        </a>
+      </p>
+    }
+  </article>
+} @else {
+  <article class="max-w-3xl">
+    <a class="btn btn-sm btn-ghost mb-3 -ml-2" routerLink="/">← Back to checklist</a>
+    <h1 class="text-2xl font-semibold">Item not found</h1>
+    <p class="opacity-70 mt-2">
+      No item with that id exists in the current snapshot. It may have been removed or renamed
+      since the snapshot was generated.
+    </p>
+  </article>
+}

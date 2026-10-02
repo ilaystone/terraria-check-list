@@ -1,0 +1,17 @@
+/* The shell layout and all colour now come from daisyUI themes and Tailwind
+   utilities in the template. Nothing here should re-declare colours: the theme
+   tokens live in `src/tailwind.css` so the whole app restyles from one place. */
+
+:host {
+  display: block;
+}
+
+/* Sidebar entries are category names of varying length; keep the row height
+   stable and let the label truncate rather than wrap. */
+.menu li > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+}

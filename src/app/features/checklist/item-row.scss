@@ -1,0 +1,26 @@
+/* Column sizing lives on the header cells in the template (`table-fixed` plus
+   `w-*`); this file handles content behaviour only.
+
+   `display: contents` is load-bearing, not cosmetic. Angular always wraps a
+   component in its host element, so the DOM is
+   `<tbody><app-item-row><tr>…</tr></app-item-row></tbody>`. A table only aligns
+   its cells to the declared columns for *real* `tr`/`td` children of the row
+   group, so with the host present the header kept its 641px Item column while
+   every body cell collapsed to its content width. Taking the host out of the
+   layout tree makes the `<tr>` a direct child for table purposes again. */
+:host {
+  display: contents;
+}
+
+.sprite {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  /* Item sprites are pixel art; smoothing them looks blurry. */
+  image-rendering: pixelated;
+}
+
+.item-row td {
+  vertical-align: middle;
+}

@@ -1,0 +1,28 @@
+# Normalise line endings across platforms.
+#
+# Without this, Git on Windows rewrites LF to CRLF in the working copy, which
+# turns every clone into a diff storm and can corrupt fixtures that compare
+# exact strings (the wiki's rate HTML is compared byte-for-byte in tests).
+#
+# `eol=lf` for text files keeps the repository canonical for everyone;
+# binary assets are explicitly excluded so they are never "normalised".
+
+* text=auto eol=lf
+
+# Binary — never touch these.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Generated snapshot data: large, machine-written, and must stay byte-stable so
+# that a regenerated snapshot produces a readable diff rather than a whole-file
+# rewrite.
+public/data/*.json text eol=lf
+
+# Windows-only scripts must keep CRLF to run.
+*.cmd text eol=crlf
+*.bat text eol=crlf

@@ -1,0 +1,19 @@
+/* Column sizing lives on the header cells in the template (`table-fixed` plus
+   `w-*`), which is the one approach that reliably works with daisyUI's `.table`.
+   Everything else here is content behaviour. */
+
+/* Type and Source must stay on one line; the item name absorbs the slack and is
+   allowed to wrap rather than forcing the table wider. */
+.table td {
+  vertical-align: middle;
+}
+
+.table td:nth-child(4),
+.table td:nth-child(5) {
+  white-space: nowrap;
+}
+
+/* Keep the header readable while scrolling a long list. */
+.table thead th {
+  background-color: var(--color-base-200);
+}
